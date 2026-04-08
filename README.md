@@ -59,27 +59,20 @@
 
 <table>
 <tr>
-<td width="50%">
+<td width="33%">
 <img src="https://img.shields.io/badge/React_+_Tauri-1A6BFF?style=flat-square&logoColor=white"/>
 
-Нативное десктопное приложение на Rust с реактивным интерфейсом
+Нативное десктопное приложение на Rust
 </td>
-<td width="50%">
+<td width="33%">
 <img src="https://img.shields.io/badge/No_Terminal-007808?style=flat-square&logoColor=white"/>
 
-Работа с FFmpeg через удобный GUI - без единой команды в консоли
+Без команд в консоли
 </td>
-</tr>
-<tr>
-<td>
+<td width="33%">
 <img src="https://img.shields.io/badge/Video_Processing-BA7517?style=flat-square&logoColor=white"/>
 
-Конвертация, обрезка, изменение размера и извлечение аудио
-</td>
-<td>
-<img src="https://img.shields.io/badge/Cross_Platform-533AB7?style=flat-square&logoColor=white"/>
-
-Работает на Windows, macOS и Linux
+Все основные функции
 </td>
 </tr>
 </table>
