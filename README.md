@@ -41,7 +41,7 @@
 <td width="50%">
 <img src="https://img.shields.io/badge/No_Terminal-007808?style=flat-square&logoColor=white"/>
 
-Работа с FFmpeg через удобный GUI — без единой команды в консоли
+Работа с FFmpeg через удобный GUI - без единой команды в консоли
 </td>
 </tr>
 <tr>
@@ -103,16 +103,16 @@ npm run build
 <br>
 <pre>
 ff-studio/
-├── src/                   — React-интерфейс
-│   ├── components/        — UI-компоненты
-│   ├── App.jsx            — корневой компонент
-│   └── index.css          — глобальные стили
-├── src-tauri/             — Rust / Tauri
-│   ├── src/main.rs        — точка входа
-│   ├── Cargo.toml         — зависимости Rust
-│   └── tauri.conf.json    — конфигурация Tauri
-├── ff/                    — FFmpeg-файлы
-├── dist/                  — сборка Vite
+├── src/                   - React-интерфейс
+│   ├── components/        - UI-компоненты
+│   ├── App.jsx            - корневой компонент
+│   └── index.css          - глобальные стили
+├── src-tauri/             - Rust / Tauri
+│   ├── src/main.rs        - точка входа
+│   ├── Cargo.toml         - зависимости Rust
+│   └── tauri.conf.json    - конфигурация Tauri
+├── ff/                    - FFmpeg-файлы
+├── dist/                  - сборка Vite
 └── package.json
 </pre>
 </details>
@@ -125,7 +125,7 @@ ff-studio/
 - Извлечение аудиодорожки
 - Обрезка по временным меткам
 - Изменение разрешения и битрейта
-- И многое другое — без терминала
+- И многое другое - без терминала
 
 ---
 
