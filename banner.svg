@@ -1,0 +1,143 @@
+<svg viewBox="0 0 900 220" xmlns="http://www.w3.org/2000/svg" width="100%">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#0a0a0f"/>
+      <stop offset="50%" stop-color="#0f0f1a"/>
+      <stop offset="100%" stop-color="#0a0a0f"/>
+    </linearGradient>
+    <linearGradient id="accentGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#1a6bff" stop-opacity="0"/>
+      <stop offset="50%" stop-color="#1a6bff" stop-opacity="0.15"/>
+      <stop offset="100%" stop-color="#1a6bff" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="filmFade" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#1a6bff" stop-opacity="0"/>
+      <stop offset="30%" stop-color="#1a6bff" stop-opacity="0.6"/>
+      <stop offset="70%" stop-color="#1a6bff" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#1a6bff" stop-opacity="0"/>
+    </linearGradient>
+    <clipPath id="clip"><rect width="900" height="220" rx="12"/></clipPath>
+  </defs>
+
+  <rect width="900" height="220" rx="12" fill="url(#bg)"/>
+
+  <!-- grid lines -->
+  <g stroke="#1a6bff" stroke-opacity="0.06" stroke-width="1">
+    <line x1="0" y1="44" x2="900" y2="44"/>
+    <line x1="0" y1="88" x2="900" y2="88"/>
+    <line x1="0" y1="132" x2="900" y2="132"/>
+    <line x1="0" y1="176" x2="900" y2="176"/>
+    <line x1="180" y1="0" x2="180" y2="220"/>
+    <line x1="360" y1="0" x2="360" y2="220"/>
+    <line x1="540" y1="0" x2="540" y2="220"/>
+    <line x1="720" y1="0" x2="720" y2="220"/>
+  </g>
+
+  <!-- accent glow strip -->
+  <rect x="0" y="90" width="900" height="40" fill="url(#accentGrad)"/>
+
+  <!-- film strip left -->
+  <g clip-path="url(#clip)">
+    <rect x="18" y="0" width="60" height="220" fill="#0d0d1a" rx="2"/>
+    <rect x="21" y="0" width="54" height="220" fill="none" stroke="#1a6bff" stroke-opacity="0.2" stroke-width="0.5"/>
+    <!-- perforations left -->
+    <rect x="22" y="12" width="10" height="14" rx="2" fill="#1a6bff" fill-opacity="0.15"/>
+    <rect x="22" y="34" width="10" height="14" rx="2" fill="#1a6bff" fill-opacity="0.15"/>
+    <rect x="22" y="56" width="10" height="14" rx="2" fill="#1a6bff" fill-opacity="0.15"/>
+    <rect x="22" y="78" width="10" height="14" rx="2" fill="#1a6bff" fill-opacity="0.15"/>
+    <rect x="22" y="100" width="10" height="14" rx="2" fill="#1a6bff" fill-opacity="0.15"/>
+    <rect x="22" y="122" width="10" height="14" rx="2" fill="#1a6bff" fill-opacity="0.15"/>
+    <rect x="22" y="144" width="10" height="14" rx="2" fill="#1a6bff" fill-opacity="0.15"/>
+    <rect x="22" y="166" width="10" height="14" rx="2" fill="#1a6bff" fill-opacity="0.15"/>
+    <rect x="22" y="188" width="10" height="14" rx="2" fill="#1a6bff" fill-opacity="0.15"/>
+    <!-- perforations right -->
+    <rect x="64" y="12" width="10" height="14" rx="2" fill="#1a6bff" fill-opacity="0.15"/>
+    <rect x="64" y="34" width="10" height="14" rx="2" fill="#1a6bff" fill-opacity="0.15"/>
+    <rect x="64" y="56" width="10" height="14" rx="2" fill="#1a6bff" fill-opacity="0.15"/>
+    <rect x="64" y="78" width="10" height="14" rx="2" fill="#1a6bff" fill-opacity="0.15"/>
+    <rect x="64" y="100" width="10" height="14" rx="2" fill="#1a6bff" fill-opacity="0.15"/>
+    <rect x="64" y="122" width="10" height="14" rx="2" fill="#1a6bff" fill-opacity="0.15"/>
+    <rect x="64" y="144" width="10" height="14" rx="2" fill="#1a6bff" fill-opacity="0.15"/>
+    <rect x="64" y="166" width="10" height="14" rx="2" fill="#1a6bff" fill-opacity="0.15"/>
+    <rect x="64" y="188" width="10" height="14" rx="2" fill="#1a6bff" fill-opacity="0.15"/>
+    <!-- frames in strip -->
+    <rect x="33" y="10" width="30" height="18" rx="1" fill="#1a6bff" fill-opacity="0.08"/>
+    <rect x="33" y="32" width="30" height="18" rx="1" fill="#1a6bff" fill-opacity="0.12"/>
+    <rect x="33" y="54" width="30" height="18" rx="1" fill="#1a6bff" fill-opacity="0.06"/>
+    <rect x="33" y="76" width="30" height="18" rx="1" fill="#1a6bff" fill-opacity="0.10"/>
+    <rect x="33" y="98" width="30" height="18" rx="1" fill="#1a6bff" fill-opacity="0.14"/>
+    <rect x="33" y="120" width="30" height="18" rx="1" fill="#1a6bff" fill-opacity="0.07"/>
+    <rect x="33" y="142" width="30" height="18" rx="1" fill="#1a6bff" fill-opacity="0.11"/>
+    <rect x="33" y="164" width="30" height="18" rx="1" fill="#1a6bff" fill-opacity="0.09"/>
+    <rect x="33" y="186" width="30" height="18" rx="1" fill="#1a6bff" fill-opacity="0.13"/>
+  </g>
+
+  <!-- film strip right -->
+  <g clip-path="url(#clip)">
+    <rect x="822" y="0" width="60" height="220" fill="#0d0d1a" rx="2"/>
+    <rect x="825" y="0" width="54" height="220" fill="none" stroke="#1a6bff" stroke-opacity="0.2" stroke-width="0.5"/>
+    <rect x="826" y="12" width="10" height="14" rx="2" fill="#1a6bff" fill-opacity="0.15"/>
+    <rect x="826" y="34" width="10" height="14" rx="2" fill="#1a6bff" fill-opacity="0.15"/>
+    <rect x="826" y="56" width="10" height="14" rx="2" fill="#1a6bff" fill-opacity="0.15"/>
+    <rect x="826" y="78" width="10" height="14" rx="2" fill="#1a6bff" fill-opacity="0.15"/>
+    <rect x="826" y="100" width="10" height="14" rx="2" fill="#1a6bff" fill-opacity="0.15"/>
+    <rect x="826" y="122" width="10" height="14" rx="2" fill="#1a6bff" fill-opacity="0.15"/>
+    <rect x="826" y="144" width="10" height="14" rx="2" fill="#1a6bff" fill-opacity="0.15"/>
+    <rect x="826" y="166" width="10" height="14" rx="2" fill="#1a6bff" fill-opacity="0.15"/>
+    <rect x="826" y="188" width="10" height="14" rx="2" fill="#1a6bff" fill-opacity="0.15"/>
+    <rect x="862" y="12" width="10" height="14" rx="2" fill="#1a6bff" fill-opacity="0.15"/>
+    <rect x="862" y="34" width="10" height="14" rx="2" fill="#1a6bff" fill-opacity="0.15"/>
+    <rect x="862" y="56" width="10" height="14" rx="2" fill="#1a6bff" fill-opacity="0.15"/>
+    <rect x="862" y="78" width="10" height="14" rx="2" fill="#1a6bff" fill-opacity="0.15"/>
+    <rect x="862" y="100" width="10" height="14" rx="2" fill="#1a6bff" fill-opacity="0.15"/>
+    <rect x="862" y="122" width="10" height="14" rx="2" fill="#1a6bff" fill-opacity="0.15"/>
+    <rect x="862" y="144" width="10" height="14" rx="2" fill="#1a6bff" fill-opacity="0.15"/>
+    <rect x="862" y="166" width="10" height="14" rx="2" fill="#1a6bff" fill-opacity="0.15"/>
+    <rect x="862" y="188" width="10" height="14" rx="2" fill="#1a6bff" fill-opacity="0.15"/>
+    <rect x="837" y="10" width="30" height="18" rx="1" fill="#1a6bff" fill-opacity="0.08"/>
+    <rect x="837" y="32" width="30" height="18" rx="1" fill="#1a6bff" fill-opacity="0.12"/>
+    <rect x="837" y="54" width="30" height="18" rx="1" fill="#1a6bff" fill-opacity="0.06"/>
+    <rect x="837" y="76" width="30" height="18" rx="1" fill="#1a6bff" fill-opacity="0.10"/>
+    <rect x="837" y="98" width="30" height="18" rx="1" fill="#1a6bff" fill-opacity="0.14"/>
+    <rect x="837" y="120" width="30" height="18" rx="1" fill="#1a6bff" fill-opacity="0.07"/>
+    <rect x="837" y="142" width="30" height="18" rx="1" fill="#1a6bff" fill-opacity="0.11"/>
+    <rect x="837" y="164" width="30" height="18" rx="1" fill="#1a6bff" fill-opacity="0.09"/>
+    <rect x="837" y="186" width="30" height="18" rx="1" fill="#1a6bff" fill-opacity="0.13"/>
+  </g>
+
+  <!-- progress bar / timeline -->
+  <rect x="100" y="188" width="700" height="2" rx="1" fill="#1a6bff" fill-opacity="0.12"/>
+  <rect x="100" y="188" width="420" height="2" rx="1" fill="#1a6bff" fill-opacity="0.7"/>
+  <circle cx="520" cy="189" r="4" fill="#1a6bff"/>
+  <!-- timeline ticks -->
+  <rect x="100" y="184" width="1" height="10" fill="#1a6bff" fill-opacity="0.3"/>
+  <rect x="275" y="185" width="1" height="8" fill="#1a6bff" fill-opacity="0.2"/>
+  <rect x="450" y="185" width="1" height="8" fill="#1a6bff" fill-opacity="0.2"/>
+  <rect x="625" y="185" width="1" height="8" fill="#1a6bff" fill-opacity="0.2"/>
+  <rect x="800" y="184" width="1" height="10" fill="#1a6bff" fill-opacity="0.3"/>
+
+  <!-- play icon -->
+  <circle cx="130" cy="110" r="22" fill="#1a6bff" fill-opacity="0.1" stroke="#1a6bff" stroke-opacity="0.3" stroke-width="1"/>
+  <polygon points="124,101 124,119 143,110" fill="#1a6bff" fill-opacity="0.6"/>
+
+  <!-- waveform bars -->
+  <g fill="#1a6bff" fill-opacity="0.25">
+    <rect x="760" y="98" width="3" height="24" rx="1"/>
+    <rect x="767" y="88" width="3" height="44" rx="1"/>
+    <rect x="774" y="94" width="3" height="32" rx="1"/>
+    <rect x="781" y="82" width="3" height="56" rx="1"/>
+    <rect x="788" y="91" width="3" height="38" rx="1"/>
+    <rect x="795" y="96" width="3" height="28" rx="1"/>
+    <rect x="802" y="86" width="3" height="48" rx="1"/>
+    <rect x="809" y="92" width="3" height="36" rx="1"/>
+  </g>
+
+  <!-- main title -->
+  <text x="450" y="92" text-anchor="middle" font-family="'Segoe UI', system-ui, sans-serif" font-size="52" font-weight="700" letter-spacing="-1" fill="white" fill-opacity="0.95">FFStudio</text>
+
+  <!-- subtitle -->
+  <text x="450" y="128" text-anchor="middle" font-family="'Segoe UI', system-ui, sans-serif" font-size="16" font-weight="400" fill="#1a6bff" fill-opacity="0.85" letter-spacing="3">FFmpeg GUI  •  React + Tauri</text>
+
+  <!-- bottom accent line -->
+  <rect x="350" y="148" width="200" height="1" rx="0.5" fill="url(#filmFade)"/>
+</svg>
