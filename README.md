@@ -19,6 +19,16 @@
   <img src="banner.svg" width="100%" alt="FFStudio Banner">
 </p>
 
+<br>
+
+<p align="center">
+  <a href="https://github.com/Haillord/FFStudio/releases/tag/FF">
+    <img src="https://img.shields.io/badge/⬇️_Скачать_установщик-007AFF?style=for-the-badge&logoColor=white&logo=github" alt="Скачать FFStudio"/>
+  </a>
+</p>
+
+<br>
+
 ---
 
 <table>
