@@ -8,7 +8,8 @@
   "bundle": {
     "active": true,
     "targets": "all",
-    "icon": []
+    "icon": [],
+    "resources": ["resources/ffmpeg.exe", "resources/ffprobe.exe"]
   },
   "productName": "FFStudio",
   "mainBinaryName": "FFStudio",
@@ -16,16 +17,17 @@
   "identifier": "com.ffstudio.app",
   "plugins": {},
   "app": {
+    "withGlobalTauri": true,
     "windows": [
       {
+        "label": "main",
         "fullscreen": false,
         "resizable": true,
         "title": "FFStudio",
         "width": 1000,
         "height": 680,
         "minWidth": 780,
-        "minHeight": 520,
-        "useHttpsScheme": true
+        "minHeight": 520
       }
     ],
     "security": {

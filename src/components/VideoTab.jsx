@@ -15,33 +15,33 @@ const RESOLUTIONS = [
   { label: 'Оригинал', value: 'original' },
 ]
 const VIDEO_CODECS = [
-  { label: 'H.264',     value: 'libx264',   tag: 'MP4/MKV' },
-  { label: 'H.265',     value: 'libx265',   tag: 'HEVC' },
-  { label: 'VP9',       value: 'libvpx-vp9',tag: 'WebM' },
-  { label: 'AV1',       value: 'libaom-av1',tag: 'AV1' },
-  { label: 'ProRes',    value: 'prores_ks', tag: 'Apple' },
-  { label: 'Без сжатия',value: 'rawvideo',  tag: 'raw' },
-  { label: 'Копия',     value: 'copy',      tag: '-vcodec copy' },
+  { label: 'H.264',      value: 'libx264',    tag: 'MP4/MKV' },
+  { label: 'H.265',      value: 'libx265',    tag: 'HEVC' },
+  { label: 'VP9',        value: 'libvpx-vp9', tag: 'WebM' },
+  { label: 'AV1',        value: 'libaom-av1', tag: 'AV1' },
+  { label: 'ProRes',     value: 'prores_ks',  tag: 'Apple' },
+  { label: 'Без сжатия', value: 'rawvideo',   tag: 'raw' },
+  { label: 'Копия',      value: 'copy',       tag: '-vcodec copy' },
 ]
 const AUDIO_CODECS = [
-  { label: 'AAC',   value: 'aac',       tag: 'default' },
-  { label: 'MP3',   value: 'libmp3lame',tag: 'compat' },
-  { label: 'Opus',  value: 'libopus',   tag: 'WebM' },
-  { label: 'FLAC',  value: 'flac',      tag: 'lossless' },
-  { label: 'Копия', value: 'copy',      tag: '-acodec copy' },
-  { label: 'Убрать',value: 'none',      tag: '-an' },
+  { label: 'AAC',    value: 'aac',        tag: 'default' },
+  { label: 'MP3',    value: 'libmp3lame', tag: 'compat' },
+  { label: 'Opus',   value: 'libopus',    tag: 'WebM' },
+  { label: 'FLAC',   value: 'flac',       tag: 'lossless' },
+  { label: 'Копия',  value: 'copy',       tag: '-acodec copy' },
+  { label: 'Убрать', value: 'none',       tag: '-an' },
 ]
 const PRESETS = ['ultrafast','superfast','veryfast','faster','fast','medium','slow','veryslow']
 const HW_ACCEL = [
-  { label: 'Нет (CPU)', value: 'none' },
-  { label: 'NVENC (NVIDIA)', value: 'nvenc' },
+  { label: 'Нет (CPU)',          value: 'none' },
+  { label: 'NVENC (NVIDIA)',     value: 'nvenc' },
   { label: 'VideoToolbox (Mac)', value: 'videotoolbox' },
-  { label: 'VAAPI (Linux)', value: 'vaapi' },
-  { label: 'AMF (AMD)', value: 'amf' },
+  { label: 'VAAPI (Linux)',      value: 'vaapi' },
+  { label: 'AMF (AMD)',          value: 'amf' },
 ]
 
 export default function VideoTab({ settings }) {
-  const { file, pickFile, clearFile } = useFile()
+  const { file, pickFile, loadFileInfo, clearFile } = useFile()
   const { state, progress, speed, fps, error, run, reset } = useConvert()
 
   const [openSections, setOpenSections] = useState({
@@ -51,48 +51,53 @@ export default function VideoTab({ settings }) {
     effects: false
   })
 
+  const [fmt, setFmt]               = useState('MP4')
+  const [res, setRes]               = useState('1920:1080')
+  const [fpsVal, setFps]            = useState(30)
+  const [crf, setCrf]               = useState(23)
+  const [vcodec, setVcodec]         = useState('libx264')
+  const [acodec, setAcodec]         = useState('aac')
+  const [abitrate, setAbitrate]     = useState('192k')
+  const [preset, setPreset]         = useState('medium')
+  const [hw, setHw]                 = useState('none')
+  const [twoPass, setTwoPass]       = useState(false)
+  const [keepAr, setKeepAr]         = useState(true)
+  const [normalize, setNormalize]   = useState(false)
+  const [faststart, setFaststart]   = useState(true)
+  const [stripMeta, setStripMeta]   = useState(false)
+  const [subsMode, setSubsMode]     = useState('keep')
+  const [playbackSpeed, setPlaybackSpeed] = useState(1.0)
+  const [rotate, setRotate]         = useState(0)
+  const [hflip, setHflip]           = useState(false)
+  const [vflip, setVflip]           = useState(false)
+
   const toggleSection = (section) => {
     setOpenSections(prev => {
-      // Режим когда открыт только один блок
-      const newState = {
-        resolution: false,
-        advanced: false,
-        effects: false
-      }
-      // Если блок уже был открыт - закрываем все
-      if (prev[section]) {
-        return newState
-      }
-      // Иначе открываем только этот
-      newState[section] = true
+      const newState = { resolution: false, advanced: false, effects: false }
+      if (!prev[section]) newState[section] = true
       return newState
     })
   }
 
-  const [fmt, setFmt]         = useState('MP4')
-  const [res, setRes]         = useState('1920:1080')
-  const [fpsVal, setFps]      = useState(30)
-  const [crf, setCrf]         = useState(23)
-  const [vcodec, setVcodec]   = useState('libx264')
-  const [acodec, setAcodec]   = useState('aac')
-  const [abitrate, setAbitrate] = useState('192k')
-  const [preset, setPreset]   = useState('medium')
-  const [hw, setHw]           = useState('none')
-  const [twoPass, setTwoPass] = useState(false)
-  const [keepAr, setKeepAr]   = useState(true)
-  const [normalize, setNormalize] = useState(false)
-  const [faststart, setFaststart] = useState(true)
-  const [stripMeta, setStripMeta] = useState(false)
-  const [subsMode, setSubsMode]   = useState('keep')
-  const [playbackSpeed, setPlaybackSpeed] = useState(1.0)
-  const [rotate, setRotate]       = useState(0)
-  const [hflip, setHflip]         = useState(false)
-  const [vflip, setVflip]         = useState(false)
+  const handleFmtChange = (newFmt) => {
+    setFmt(newFmt)
+    if (newFmt === 'WebM') {
+      setVcodec('libvpx-vp9')
+      setAcodec('libopus')
+    } else if (newFmt === 'MOV') {
+      setVcodec('prores_ks')
+      setAcodec('aac')
+    } else if (newFmt === 'AVI') {
+      setVcodec('libx264')
+      setAcodec('libmp3lame')
+    } else {
+      setVcodec('libx264')
+      setAcodec('aac')
+    }
+  }
 
-  // Build ffmpeg args from state
   const ffArgs = useMemo(() => {
     const args = []
-    // Video codec
     if (vcodec === 'copy') {
       args.push('-vcodec', 'copy')
     } else if (vcodec !== 'none') {
@@ -100,7 +105,6 @@ export default function VideoTab({ settings }) {
       if (vcodec !== 'rawvideo') args.push('-crf', String(crf))
       if (['libx264','libx265'].includes(vcodec)) args.push('-preset', preset)
     }
-    // Video filters
     const vf = []
     if (res !== 'original') {
       const [w, h] = res.split(':')
@@ -110,17 +114,11 @@ export default function VideoTab({ settings }) {
       vf.push(`setpts=${1/playbackSpeed}*PTS`)
       args.push('-af', `atempo=${playbackSpeed}`)
     }
-    if (rotate !== 0) {
-      vf.push(`transpose=${rotate}`)
-    }
+    if (rotate !== 0) vf.push(`transpose=${rotate}`)
     if (hflip) vf.push('hflip')
     if (vflip) vf.push('vflip')
-    if (vf.length > 0) {
-      args.push('-vf', vf.join(','))
-    }
-    // FPS
+    if (vf.length > 0) args.push('-vf', vf.join(','))
     args.push('-r', String(fpsVal))
-    // Audio
     if (acodec === 'none') {
       args.push('-an')
     } else if (acodec === 'copy') {
@@ -129,15 +127,12 @@ export default function VideoTab({ settings }) {
       args.push('-acodec', acodec, '-b:a', abitrate)
       if (normalize) args.push('-af', 'loudnorm=I=-14:TP=-1.5:LRA=11')
     }
-    // Subtitles
     if (subsMode === 'strip') args.push('-sn')
-    // Metadata
     if (stripMeta) args.push('-map_metadata', '-1')
-    // Faststart for MP4
     if (fmt === 'MP4' && faststart) args.push('-movflags', '+faststart')
     return args
   }, [vcodec, crf, preset, res, keepAr, fpsVal, acodec, abitrate, normalize,
-      subsMode, stripMeta, fmt, faststart])
+      subsMode, stripMeta, fmt, faststart, playbackSpeed, rotate, hflip, vflip])
 
   const cmd = useMemo(() => {
     if (!file) return 'ffmpeg -i input.mp4 ...'
@@ -155,47 +150,40 @@ export default function VideoTab({ settings }) {
 
   return (
     <div className="content">
-      {/* File */}
       <FileDropZone
         file={file}
         onPick={() => pickFile([{ name: 'Видео', extensions: ['mp4','mkv','avi','mov','webm','ts','flv','m4v'] }])}
         onClear={clearFile}
+        onDropPath={loadFileInfo}
         accept="MP4, MKV, AVI, MOV, WebM и другие"
       />
 
-      {/* Format */}
       <div className="card">
         <div className="card-header"><span className="card-title">Формат вывода</span></div>
         <div className="chip-row">
           {VIDEO_FORMATS.map(f => (
-            <Chip key={f} label={f} sel={fmt === f} onClick={() => setFmt(f)} />
+            <Chip key={f} label={f} sel={fmt === f} onClick={() => handleFmtChange(f)} />
           ))}
         </div>
       </div>
 
-      {/* Resolution + FPS */}
       <div className="card">
-        <div 
-          className="card-header clickable" 
-          onClick={() => toggleSection('resolution')}
-        >
+        <div className="card-header clickable" onClick={() => toggleSection('resolution')}>
           <span className="card-title">Разрешение</span>
           <span className={`card-toggle ${openSections.resolution ? 'open' : ''}`}>▼</span>
         </div>
         <div className={`card-content ${openSections.resolution ? 'open' : ''}`}>
-        <div className="chip-row">
-          {RESOLUTIONS.map(r => (
-            <Chip key={r.value} label={r.label} sel={res === r.value} onClick={() => setRes(r.value)} />
-          ))}
-        </div>
-        <SliderRow label="FPS" min={10} max={120} step={1} value={fpsVal} onChange={setFps} />
-        <ToggleRow label="Сохранить соотношение сторон" on={keepAr} onChange={setKeepAr} />
+          <div className="chip-row">
+            {RESOLUTIONS.map(r => (
+              <Chip key={r.value} label={r.label} sel={res === r.value} onClick={() => setRes(r.value)} />
+            ))}
+          </div>
+          <SliderRow label="FPS" min={10} max={120} step={1} value={fpsVal} onChange={setFps} />
+          <ToggleRow label="Сохранить соотношение сторон" on={keepAr} onChange={setKeepAr} />
         </div>
       </div>
 
-      {/* Codecs */}
       <div className="two-col">
-        {/* Video codec */}
         <div className="card">
           <div className="card-header"><span className="card-title">Видеокодек</span></div>
           <div className="codec-grid">
@@ -208,14 +196,11 @@ export default function VideoTab({ settings }) {
           </div>
           <SliderRow label="Качество (CRF)" hint="Меньше = лучше качество"
             min={0} max={51} value={crf} onChange={setCrf} />
-          <SelectRow label="Скорость (preset)" value={preset} onChange={setPreset}
-            options={PRESETS} />
-          <SelectRow label="Аппаратное ускорение" value={hw} onChange={setHw}
-            options={HW_ACCEL} />
+          <SelectRow label="Скорость (preset)" value={preset} onChange={setPreset} options={PRESETS} />
+          <SelectRow label="Аппаратное ускорение" value={hw} onChange={setHw} options={HW_ACCEL} />
           <ToggleRow label="Двухпроходное кодирование" on={twoPass} onChange={setTwoPass} />
         </div>
 
-        {/* Audio codec */}
         <div className="card">
           <div className="card-header"><span className="card-title">Аудиокодек</span></div>
           <div className="codec-grid">
@@ -233,55 +218,46 @@ export default function VideoTab({ settings }) {
         </div>
       </div>
 
-      {/* Advanced */}
       <div className="card">
-        <div 
-          className="card-header clickable" 
-          onClick={() => toggleSection('advanced')}
-        >
+        <div className="card-header clickable" onClick={() => toggleSection('advanced')}>
           <span className="card-title">Дополнительно</span>
           <span className={`card-toggle ${openSections.advanced ? 'open' : ''}`}>▼</span>
         </div>
         <div className={`card-content ${openSections.advanced ? 'open' : ''}`}>
-        <SelectRow label="Субтитры" value={subsMode} onChange={setSubsMode}
-          options={[
-            { label: 'Сохранить', value: 'keep' },
-            { label: 'Встроить (hardsub)', value: 'hardsub' },
-            { label: 'Удалить', value: 'strip' },
-          ]} />
-        <ToggleRow label="Удалить метаданные" on={stripMeta} onChange={setStripMeta} />
-        <ToggleRow label="Faststart (для стриминга)" hint="Только MP4"
-          on={faststart} onChange={setFaststart} />
+          <SelectRow label="Субтитры" value={subsMode} onChange={setSubsMode}
+            options={[
+              { label: 'Сохранить', value: 'keep' },
+              { label: 'Встроить (hardsub)', value: 'hardsub' },
+              { label: 'Удалить', value: 'strip' },
+            ]} />
+          <ToggleRow label="Удалить метаданные" on={stripMeta} onChange={setStripMeta} />
+          <ToggleRow label="Faststart (для стриминга)" hint="Только MP4"
+            on={faststart} onChange={setFaststart} />
         </div>
       </div>
 
-      {/* Video Effects */}
       <div className="card">
-        <div 
-          className="card-header clickable" 
-          onClick={() => toggleSection('effects')}
-        >
+        <div className="card-header clickable" onClick={() => toggleSection('effects')}>
           <span className="card-title">Эффекты видео</span>
           <span className={`card-toggle ${openSections.effects ? 'open' : ''}`}>▼</span>
         </div>
         <div className={`card-content ${openSections.effects ? 'open' : ''}`}>
-        <SliderRow label="Скорость воспроизведения" min={0.25} max={16} step={0.25} value={playbackSpeed} onChange={setPlaybackSpeed} />
-        <SelectRow label="Поворот" value={rotate} onChange={setRotate}
-          options={[
-            { label: 'Без поворота', value: 0 },
-            { label: '90° по часовой', value: 1 },
-            { label: '180°', value: 2 },
-            { label: '90° против часовой', value: 3 },
-          ]} />
-        <ToggleRow label="Отразить по горизонтали" on={hflip} onChange={setHflip} />
-        <ToggleRow label="Отразить по вертикали" on={vflip} onChange={setVflip} />
+          <SliderRow label="Скорость воспроизведения" min={0.25} max={16} step={0.25}
+            value={playbackSpeed} onChange={setPlaybackSpeed} />
+          <SelectRow label="Поворот" value={rotate} onChange={setRotate}
+            options={[
+              { label: 'Без поворота', value: 0 },
+              { label: '90° по часовой', value: 1 },
+              { label: '180°', value: 2 },
+              { label: '90° против часовой', value: 3 },
+            ]} />
+          <ToggleRow label="Отразить по горизонтали" on={hflip} onChange={setHflip} />
+          <ToggleRow label="Отразить по вертикали" on={vflip} onChange={setVflip} />
         </div>
       </div>
 
-      {/* CMD */}
       <CmdPreview cmd={cmd} />
 
-      {/* Convert button */}
       <ConvertFooter
         state={state} progress={progress} speed={speed} fps={fps} error={error}
         onConvert={handleConvert} onReset={reset}

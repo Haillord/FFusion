@@ -1,27 +1,47 @@
 import { useState } from 'react'
 import {
-  useConvert, saveOutput,
-  Chip, SliderRow, SelectRow, ToggleRow,
+  Chip, SelectRow,
   ConvertFooter, CmdPreview, FileDropZone,
 } from './shared'
+import { open } from '@tauri-apps/plugin-dialog'
 import { invoke } from '@tauri-apps/api/core'
+import { listen } from '@tauri-apps/api/event'
 
 const MERGE_FORMATS = ['MP4', 'MKV', 'MOV', 'TS']
 
 export default function MergeTab({ settings }) {
-  const { state, progress, speed, fps, error, run, reset } = useConvert()
+  const [state, setState] = useState('idle')
+  const [progress, setProgress] = useState(0)
+  const [speed, setSpeed] = useState(0)
+  const [fps, setFps] = useState(0)
+  const [error, setError] = useState(null)
+
   const [files, setFiles] = useState([])
   const [fmt, setFmt] = useState('MP4')
   const [vcodec, setVcodec] = useState('copy')
   const [acodec, setAcodec] = useState('copy')
   const [showAdvanced, setShowAdvanced] = useState(false)
 
+  const reset = () => {
+    setState('idle')
+    setProgress(0)
+    setError(null)
+  }
+
   const pickFiles = async () => {
-    const selected = await invoke('dialog_open', {
+    const selected = await open({
       multiple: true,
       filters: [{ name: 'Видео файлы', extensions: ['mp4','mkv','avi','mov','webm','ts','flv'] }]
     })
-    if (selected) setFiles(prev => [...prev, ...selected])
+    if (!selected) return
+    const paths = Array.isArray(selected) ? selected : [selected]
+    const newItems = paths.map(path => ({ path, name: path.split(/[\\/]/).pop() }))
+    setFiles(prev => [...prev, ...newItems])
+  }
+
+  const handleDropPath = (path) => {
+    const name = path.split(/[\\/]/).pop()
+    setFiles(prev => [...prev, { path, name }])
   }
 
   const removeFile = (index) => {
@@ -34,7 +54,7 @@ export default function MergeTab({ settings }) {
     const newFiles = [...files]
     const newIndex = index + dir
     if (newIndex < 0 || newIndex >= files.length) return
-    [newFiles[index], newFiles[newIndex]] = [newFiles[newIndex], newFiles[index]]
+    ;[newFiles[index], newFiles[newIndex]] = [newFiles[newIndex], newFiles[index]]
     setFiles(newFiles)
   }
 
@@ -45,42 +65,99 @@ export default function MergeTab({ settings }) {
 
   const handleMerge = async () => {
     if (files.length < 2) return
+
     const ext = fmt.toLowerCase()
-    const outPath = await saveOutput(`merged.${ext}`, [{ name: fmt, extensions: [ext] }])
+    const { save } = await import('@tauri-apps/plugin-dialog')
+    const outPath = await save({
+      defaultPath: `merged.${ext}`,
+      filters: [{ name: fmt, extensions: [ext] }]
+    })
     if (!outPath) return
 
-    // Create temp list file
-    const listContent = files.map(f => {
-      // Правильное экранирование для FFmpeg concat демуксера
-      const escapedPath = f.path.replace(/'/g, "'\\''")
-      return `file '${escapedPath}'`
-    }).join('\n')
-    const listPath = await invoke('temp_file', { prefix: 'ffmpeg_merge_', suffix: '.txt' })
-    await invoke('fs_write_file', { path: listPath, contents: listContent })
+    const listContent = files.map(f => `file '${f.path.replace(/\\/g, '/').replace(/'/g, "\\'")}'`).join('\n')
 
-    const args = [
-      '-y', '-f', 'concat', '-safe', '0',
-      '-i', listPath,
-      '-vcodec', vcodec,
-      '-acodec', acodec,
-    ]
+    let listPath
+    try {
+      listPath = await invoke('write_temp_list', { contents: listContent })
+    } catch (e) {
+      setError(`Ошибка создания списка: ${e}`)
+      setState('error')
+      return
+    }
 
-    run(files[0].path, outPath, args)
+    const jobId = `merge-${Date.now()}`
+    setState('running')
+    setProgress(0)
+    setError(null)
+
+    const unlisten = await listen('ffmpeg-progress', ({ payload }) => {
+      if (payload.job_id !== jobId) return
+      setProgress(payload.percent)
+      setSpeed(payload.speed)
+      setFps(payload.fps)
+      if (payload.done) {
+        unlisten()
+        if (payload.error) {
+          setState('error')
+          setError(payload.error)
+        } else {
+          setState('done')
+          setProgress(100)
+        }
+      }
+    })
+
+    try {
+      await invoke('convert_concat', {
+        list_path: listPath,
+        output: outPath,
+        args: ['-vcodec', vcodec, '-acodec', acodec],
+        job_id: jobId,
+      })
+    } catch (e) {
+      setState('error')
+      setError(String(e))
+      unlisten()
+    }
   }
 
-  const cmd = `ffmpeg -f concat -safe 0 -i list.txt -c copy output.${fmt.toLowerCase()}`
+  const cmd = `ffmpeg -f concat -safe 0 -i list.txt -vcodec ${vcodec} -acodec ${acodec} output.${fmt.toLowerCase()}`
+  const fakeFile = files.length > 0 ? { name: `${files.length} файл(ов) выбрано`, path: '' } : null
 
   return (
     <div className="content">
       <FileDropZone
-        multiple
-        files={files}
+        file={fakeFile}
         onPick={pickFiles}
         onClear={clearAll}
-        accept="Выберите несколько видео файлов"
-        onRemove={removeFile}
-        onMove={moveFile}
+        onDropPath={handleDropPath}
+        accept="Выберите или перетащите видео файлы (можно несколько)"
       />
+
+      {files.length > 0 && (
+        <div className="card">
+          <div className="card-header">
+            <span className="card-title">Файлы для склейки ({files.length})</span>
+            <button className="btn btn-secondary" style={{ fontSize: 12 }} onClick={pickFiles}>
+              + Добавить
+            </button>
+          </div>
+          {files.map((f, i) => (
+            <div key={i} className="queue-item">
+              <div className="queue-thumb">🎬</div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div className="queue-name">{f.name}</div>
+                <div className="queue-meta">{f.path}</div>
+              </div>
+              <div style={{ display: 'flex', gap: 4 }}>
+                <button className="btn-icon" onClick={() => moveFile(i, -1)} disabled={i === 0}>↑</button>
+                <button className="btn-icon" onClick={() => moveFile(i, 1)} disabled={i === files.length - 1}>↓</button>
+                <button className="btn-icon" onClick={() => removeFile(i)}>✕</button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       <div className="card">
         <div className="card-header"><span className="card-title">Формат вывода</span></div>
@@ -92,35 +169,24 @@ export default function MergeTab({ settings }) {
       </div>
 
       <div className="card">
-        <div 
-          className="card-header clickable" 
-          onClick={() => setShowAdvanced(prev => !prev)}
-          style={{ cursor: 'pointer' }}
-        >
+        <div className="card-header clickable" onClick={() => setShowAdvanced(prev => !prev)} style={{ cursor: 'pointer' }}>
           <span className="card-title">⚙️ Дополнительные параметры</span>
           <span style={{ opacity: 0.6 }}>{showAdvanced ? '▲' : '▼'}</span>
         </div>
-        
         {showAdvanced && (
           <div style={{ paddingTop: 8 }}>
-            <div className="two-col">
-              <div>
-                <SelectRow label="Режим кодирования" value={vcodec} onChange={setVcodec}
-                  options={[
-                    { label: '🚀 Быстрая склейка (без перекодирования)', value: 'copy' },
-                    { label: '🎥 Перекодировать H.264 (универсальный)', value: 'libx264' },
-                    { label: '🎞️ Перекодировать H.265 (маленький размер)', value: 'libx265' },
-                  ]} />
-              </div>
-              <div>
-                <SelectRow label="Аудио" value={acodec} onChange={setAcodec}
-                  options={[
-                    { label: 'Копировать', value: 'copy' },
-                    { label: 'AAC', value: 'aac' },
-                    { label: 'MP3', value: 'libmp3lame' },
-                  ]} />
-              </div>
-            </div>
+            <SelectRow label="Режим кодирования" value={vcodec} onChange={setVcodec}
+              options={[
+                { label: '🚀 Быстрая склейка (без перекодирования)', value: 'copy' },
+                { label: '🎥 Перекодировать H.264', value: 'libx264' },
+                { label: '🎞️ Перекодировать H.265', value: 'libx265' },
+              ]} />
+            <SelectRow label="Аудио" value={acodec} onChange={setAcodec}
+              options={[
+                { label: 'Копировать', value: 'copy' },
+                { label: 'AAC', value: 'aac' },
+                { label: 'MP3', value: 'libmp3lame' },
+              ]} />
           </div>
         )}
       </div>

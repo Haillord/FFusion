@@ -14,7 +14,7 @@ const DITHER_MODES = [
 ]
 
 export default function GifWebpTab({ settings }) {
-  const { file, pickFile, clearFile } = useFile()
+  const { file, pickFile, loadFileInfo, clearFile } = useFile()
   const { state, progress, speed, fps, error, run, reset } = useConvert()
 
   const [fmt, setFmt]           = useState('GIF')
@@ -24,7 +24,7 @@ export default function GifWebpTab({ settings }) {
   const [loop, setLoop]         = useState(true)
   const [dither, setDither]     = useState('bayer')
   const [startTime, setStart]   = useState(0)
-  const [duration, setDuration] = useState(0)  // 0 = full
+  const [duration, setDuration] = useState(0)
   const [optimize, setOptimize] = useState(true)
 
   const ffArgs = useMemo(() => {
@@ -33,8 +33,6 @@ export default function GifWebpTab({ settings }) {
     if (duration > 0)  args.push('-t', String(duration))
 
     if (fmt === 'GIF') {
-      // Two-pass GIF: palettegen + paletteuse for best quality
-      // We do it in a single command with a pipe
       args.push('-vf',
         `fps=${gifFps},scale=${width}:-1:flags=lanczos,split[s0][s1];[s0]palettegen=stats_mode=diff[p];[s1][p]paletteuse=dither=${dither}`)
       if (loop) args.push('-loop', '0')
@@ -42,7 +40,7 @@ export default function GifWebpTab({ settings }) {
     } else if (fmt === 'WebP') {
       args.push('-vf', `fps=${gifFps},scale=${width}:-1:flags=lanczos`)
       args.push('-vcodec', 'libwebp')
-      args.push('-quality', String(quality))
+      args.push('-q:v', String(quality))
       args.push('-preset', 'default')
       args.push('-loop', loop ? '0' : '1')
       if (optimize) args.push('-compression_level', '6')
@@ -74,10 +72,10 @@ export default function GifWebpTab({ settings }) {
         file={file}
         onPick={() => pickFile([{ name: 'Видео', extensions: ['mp4','mkv','avi','mov','webm','gif'] }])}
         onClear={clearFile}
+        onDropPath={loadFileInfo}
         accept="MP4, MKV, MOV, WebM или существующий GIF для перекодирования"
       />
 
-      {/* Format */}
       <div className="card">
         <div className="card-header"><span className="card-title">Формат</span></div>
         <div className="chip-row">
@@ -87,7 +85,6 @@ export default function GifWebpTab({ settings }) {
         </div>
       </div>
 
-      {/* Basic params */}
       <div className="card">
         <div className="card-header"><span className="card-title">Параметры анимации</span></div>
         <SliderRow label="FPS" min={5} max={30} step={1} value={gifFps} onChange={setGifFps} />
@@ -100,7 +97,6 @@ export default function GifWebpTab({ settings }) {
         <ToggleRow label="Зациклить анимацию" on={loop} onChange={setLoop} />
       </div>
 
-      {/* Advanced */}
       <div className="card">
         <div className="card-header"><span className="card-title">Дополнительно</span></div>
         {fmt === 'GIF' && (

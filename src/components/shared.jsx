@@ -194,13 +194,13 @@ export function FileDropZone({ file, onPick, onClear, onDropPath, accept }) {
   useEffect(() => {
     let unlistenDrop, unlistenEnter, unlistenLeave;
     const setup = async () => {
-      unlistenDrop = await listen("tauri://drag-drop", (event) => {
+      unlistenDrop = await listen("tauri://drop", (event) => {
         setDragging(false);
         const paths = event.payload?.paths;
         if (paths?.[0]) onDropPath(paths[0]);
       });
-      unlistenEnter = await listen("tauri://drag-enter", () => setDragging(true));
-      unlistenLeave = await listen("tauri://drag-leave", () => setDragging(false));
+      unlistenEnter = await listen("tauri://drop-hover", () => setDragging(true));
+      unlistenLeave = await listen("tauri://drop-cancelled", () => setDragging(false));
     };
     setup();
     return () => {

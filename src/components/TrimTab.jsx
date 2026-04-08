@@ -6,12 +6,12 @@ import {
 } from './shared'
 
 export default function TrimTab({ settings }) {
-  const { file, pickFile, clearFile } = useFile()
+  const { file, pickFile, loadFileInfo, clearFile } = useFile()
   const { state, progress, speed, fps, error, run, reset } = useConvert()
 
   const [startTime, setStart] = useState(0)
   const [endTime, setEnd]     = useState(0)
-  const [noReencode, setNoRe] = useState(true)  // -c copy for fast trim
+  const [noReencode, setNoRe] = useState(true)
 
   const duration = file?.info?.duration ?? 0
 
@@ -36,19 +36,11 @@ export default function TrimTab({ settings }) {
     if (!file) return
     const outPath = await saveOutput('output_trimmed.mp4', [{ name: 'MP4', extensions: ['mp4'] }])
     if (!outPath) return
-    // For trim, -ss must come before -i for accuracy
     const trimArgs = [...ffArgs]
     run(file.path, outPath, trimArgs)
   }
 
   const TimeInput = ({ label, value, onChange }) => {
-    const toHms = (s) => {
-      const h = Math.floor(s / 3600)
-      const m = Math.floor((s % 3600) / 60)
-      const sec = (s % 60).toFixed(1)
-      return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(sec).padStart(4,'0')}`
-    }
-
     return (
       <div className="row">
         <div>
@@ -86,6 +78,7 @@ export default function TrimTab({ settings }) {
         file={file}
         onPick={() => pickFile([{ name: 'Видео', extensions: ['mp4','mkv','avi','mov','webm'] }])}
         onClear={clearFile}
+        onDropPath={loadFileInfo}
         accept="MP4, MKV, AVI, MOV, WebM"
       />
 

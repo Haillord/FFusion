@@ -1,31 +1,45 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useRef } from 'react'
 import { open } from '@tauri-apps/plugin-dialog'
 import { invoke } from '@tauri-apps/api/core'
 import { listen } from '@tauri-apps/api/event'
-import { save } from '@tauri-apps/plugin-dialog'
 import { formatSize, formatDuration } from './shared'
 
 const STATUS_LABEL = {
-  waiting:  { text: 'Ожидание', cls: 'badge-gray' },
-  running:  { text: 'В процессе', cls: 'badge-blue' },
-  done:     { text: 'Готово', cls: 'badge-green' },
-  error:    { text: 'Ошибка', cls: 'badge-red' },
+  waiting: { text: 'Ожидание',   cls: 'badge-gray' },
+  running: { text: 'В процессе', cls: 'badge-blue' },
+  done:    { text: 'Готово',     cls: 'badge-green' },
+  error:   { text: 'Ошибка',     cls: 'badge-red' },
+}
+
+const CODEC_FOR_FMT = {
+  mp4: 'libx264', mkv: 'libx264', avi: 'libx264', webm: 'libvpx-vp9'
 }
 
 let jobCounter = 0
 function makeId() { return `batch-${Date.now()}-${jobCounter++}` }
 
 export default function BatchTab({ settings }) {
-  const [queue, setQueue] = useState([])
+  const [queue, setQueue]     = useState([])
   const [outputDir, setOutputDir] = useState('')
-  const [vcodec, setVcodec]       = useState('libx264')
-  const [crf, setCrf]             = useState(23)
-  const [fmt, setFmt]             = useState('mp4')
-  const [running, setRunning]     = useState(false)
+  const [fmt, setFmt]         = useState('mp4')
+  const [crf, setCrf]         = useState(23)
+  const [running, setRunning] = useState(false)
+  const queueRef = useRef(queue)
+
+  // Keep ref in sync so listener always sees latest queue
+  const updateQueue = (fn) => {
+    setQueue(prev => {
+      const next = fn(prev)
+      queueRef.current = next
+      return next
+    })
+  }
 
   const updateItem = useCallback((id, patch) => {
-    setQueue(q => q.map(item => item.id === id ? { ...item, ...patch } : item))
+    updateQueue(q => q.map(item => item.id === id ? { ...item, ...patch } : item))
   }, [])
+
+  const vcodec = CODEC_FOR_FMT[fmt] ?? 'libx264'
 
   const addFiles = async () => {
     const paths = await open({
@@ -41,45 +55,43 @@ export default function BatchTab({ settings }) {
       progress: 0,
       error: null,
     }))
-    setQueue(q => [...q, ...newItems])
+    updateQueue(q => [...q, ...newItems])
   }
 
-  const removeItem = (id) => {
-    setQueue(q => q.filter(i => i.id !== id))
-  }
+  const removeItem = (id) => updateQueue(q => q.filter(i => i.id !== id))
+  const clearDone  = ()  => updateQueue(q => q.filter(i => i.status !== 'done'))
 
-  const clearDone = () => {
-    setQueue(q => q.filter(i => i.status !== 'done'))
+  const pickOutputDir = async () => {
+    const dir = await open({ directory: true, multiple: false })
+    if (dir) setOutputDir(typeof dir === 'string' ? dir : dir[0])
   }
 
   const runAll = async () => {
-    if (!outputDir) {
-      alert('Укажите папку вывода')
-      return
-    }
+    if (!outputDir) { alert('Укажите папку вывода'); return }
     setRunning(true)
-    const waitingItems = queue.filter(i => i.status === 'waiting')
 
-    // Listen to all progress events
+    const waitingItems = queueRef.current.filter(i => i.status === 'waiting')
+
     const unlisten = await listen('ffmpeg-progress', ({ payload }) => {
-      const item = queue.find(i => i.id === payload.job_id)
-      if (!item) return
       if (payload.done) {
         updateItem(payload.job_id, {
           status: payload.error ? 'error' : 'done',
-          progress: payload.error ? item.progress : 100,
+          progress: payload.error ? 0 : 100,
           error: payload.error || null,
         })
       } else {
-        updateItem(payload.job_id, { progress: payload.percent })
+        updateItem(payload.job_id, { status: 'running', progress: payload.percent })
       }
     })
 
-    // Run jobs sequentially (or 2 at a time based on settings)
     for (const item of waitingItems) {
       updateItem(item.id, { status: 'running', progress: 0 })
-      const outPath = `${outputDir}/${item.name.replace(/\.[^.]+$/, '')}_converted.${fmt}`
-      const args = ['-vcodec', vcodec, '-crf', String(crf), '-acodec', 'aac', '-movflags', '+faststart']
+      const baseName = item.name.replace(/\.[^.]+$/, '')
+      const outPath = `${outputDir}\\${baseName}_converted.${fmt}`
+      const args = vcodec === 'copy'
+        ? ['-vcodec', 'copy', '-acodec', 'copy']
+        : ['-vcodec', vcodec, '-crf', String(crf), '-acodec', fmt === 'webm' ? 'libopus' : 'aac', '-movflags', '+faststart']
+
       try {
         await invoke('convert', {
           args: { input: item.path, output: outPath, args, job_id: item.id }
@@ -93,11 +105,6 @@ export default function BatchTab({ settings }) {
     setRunning(false)
   }
 
-  const pickOutputDir = async () => {
-    const dir = await open({ directory: true, multiple: false })
-    if (dir) setOutputDir(dir)
-  }
-
   const waiting = queue.filter(i => i.status === 'waiting').length
   const done    = queue.filter(i => i.status === 'done').length
   const errors  = queue.filter(i => i.status === 'error').length
@@ -105,7 +112,6 @@ export default function BatchTab({ settings }) {
 
   return (
     <div className="content">
-      {/* Stats */}
       {queue.length > 0 && (
         <div style={{ display: 'flex', gap: 8 }}>
           {waiting > 0 && <span className="badge badge-gray">{waiting} ожидает</span>}
@@ -115,7 +121,6 @@ export default function BatchTab({ settings }) {
         </div>
       )}
 
-      {/* Queue */}
       <div className="card">
         <div className="card-header">
           <span className="card-title">Очередь ({queue.length} файлов)</span>
@@ -130,7 +135,6 @@ export default function BatchTab({ settings }) {
             </button>
           </div>
         </div>
-
         {queue.length === 0 ? (
           <div style={{ padding: '28px', textAlign: 'center', color: 'var(--text-tertiary)', fontSize: 13 }}>
             Нет файлов. Нажмите «Добавить» или перетащите файлы.
@@ -142,17 +146,14 @@ export default function BatchTab({ settings }) {
         )}
       </div>
 
-      {/* Settings */}
       <div className="card">
         <div className="card-header"><span className="card-title">Настройки пакета</span></div>
-
         <div className="row">
           <div className="row-label">Папка вывода</div>
           <button className="btn btn-secondary" style={{ fontSize: 12 }} onClick={pickOutputDir}>
             {outputDir ? outputDir.split(/[\\/]/).pop() : 'Выбрать...'}
           </button>
         </div>
-
         <div className="row">
           <div className="row-label">Формат вывода</div>
           <select className="ios-select" value={fmt} onChange={e => setFmt(e.target.value)}>
@@ -161,16 +162,6 @@ export default function BatchTab({ settings }) {
             ))}
           </select>
         </div>
-
-        <div className="row">
-          <div className="row-label">Кодек</div>
-          <select className="ios-select" value={vcodec} onChange={e => setVcodec(e.target.value)}>
-            <option value="libx264">H.264</option>
-            <option value="libx265">H.265</option>
-            <option value="copy">Копия (без перекодирования)</option>
-          </select>
-        </div>
-
         <div className="row">
           <div><div className="row-label">Качество (CRF)</div><div className="row-hint">Меньше = лучше</div></div>
           <div className="slider-wrap">
@@ -181,11 +172,10 @@ export default function BatchTab({ settings }) {
         </div>
       </div>
 
-      {/* Run button */}
       <button
         className="btn btn-primary"
         onClick={runAll}
-        disabled={running || queue.filter(i => i.status === 'waiting').length === 0}
+        disabled={running || waiting === 0}
         style={{ width: '100%', justifyContent: 'center', padding: '12px', fontSize: 15 }}
       >
         {running ? '⏳ Конвертация...' : `▶ Запустить (${waiting} файлов)`}
@@ -205,14 +195,10 @@ function QueueRow({ item, onRemove }) {
           ? <div className="queue-meta" style={{ color: 'var(--ios-red)' }}>{item.error}</div>
           : <div className="queue-meta">{item.path}</div>
         }
-        {item.status === 'running' && (
+        {(item.status === 'running' || item.status === 'done') && (
           <div className="progress-bar">
-            <div className="progress-fill" style={{ width: `${item.progress}%` }} />
-          </div>
-        )}
-        {item.status === 'done' && (
-          <div className="progress-bar">
-            <div className="progress-fill done" style={{ width: '100%' }} />
+            <div className={`progress-fill${item.status === 'done' ? ' done' : ''}`}
+              style={{ width: `${item.progress}%` }} />
           </div>
         )}
       </div>

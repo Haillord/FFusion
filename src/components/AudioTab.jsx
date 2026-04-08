@@ -20,7 +20,7 @@ const CHANNELS = [
 ]
 
 export default function AudioTab({ settings }) {
-  const { file, pickFile, clearFile } = useFile()
+  const { file, pickFile, loadFileInfo, clearFile } = useFile()
   const { state, progress, speed, fps, error, run, reset } = useConvert()
 
   const [fmt, setFmt]           = useState('MP3')
@@ -28,14 +28,13 @@ export default function AudioTab({ settings }) {
   const [sampleRate, setSR]     = useState('44100')
   const [channels, setChannels] = useState('2')
   const [normalize, setNormalize] = useState(false)
-  const [volume, setVolume]     = useState(100)   // percent
+  const [volume, setVolume]     = useState(100)
   const [trimSilence, setTrimSilence] = useState(false)
-  const [extractOnly, setExtract]     = useState(false) // extract audio from video
 
   const ffArgs = useMemo(() => {
     const args = []
     const codec = CODEC_MAP[fmt] ?? 'aac'
-    args.push('-vn') // no video
+    args.push('-vn')
     args.push('-acodec', codec)
     if (bitrate !== 'Auto' && !['flac','pcm_s16le'].includes(codec)) {
       args.push('-b:a', bitrate)
@@ -74,10 +73,10 @@ export default function AudioTab({ settings }) {
           { name: 'Видео (извлечь звук)', extensions: ['mp4','mkv','avi','mov','webm'] },
         ])}
         onClear={clearFile}
+        onDropPath={loadFileInfo}
         accept="MP3, AAC, FLAC, WAV, OGG, M4A, OPUS — или видео для извлечения звука"
       />
 
-      {/* Format */}
       <div className="card">
         <div className="card-header"><span className="card-title">Формат вывода</span></div>
         <div className="chip-row">
@@ -87,7 +86,6 @@ export default function AudioTab({ settings }) {
         </div>
       </div>
 
-      {/* Parameters */}
       <div className="card">
         <div className="card-header"><span className="card-title">Параметры</span></div>
         <SelectRow label="Битрейт" value={bitrate} onChange={setBitrate} options={BITRATES} />
@@ -96,7 +94,6 @@ export default function AudioTab({ settings }) {
         <SelectRow label="Каналы" value={channels} onChange={setChannels} options={CHANNELS} />
       </div>
 
-      {/* Processing */}
       <div className="card">
         <div className="card-header"><span className="card-title">Обработка</span></div>
         <ToggleRow label="Нормализация громкости" hint="loudnorm -14 LUFS (стандарт стриминга)"

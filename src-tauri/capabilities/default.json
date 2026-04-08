@@ -5,14 +5,11 @@
   "windows": ["main"],
   "permissions": [
     "core:default",
-    "dialog:all",
-    "event:all",
-    "fs:all",
-    "shell:all",
-    "path:all",
-    {
-      "identifier": "fs:scope",
-      "allow": ["**"]
-    }
+    "dialog:default",
+    "fs:default",
+    "fs:read-all",
+    "fs:write-all",
+    "fs:scope-home-recursive",
+    "shell:default"
   ]
 }
