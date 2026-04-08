@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="icon.png" alt="FinCat Banner" style="max-width: 100%; width: auto; height: auto;">
+  <img src="icon.webp" alt="FFStudio" width="200">
 </p>
 
 <p align="center">

@@ -79,6 +79,7 @@ export default function MergeTab({ settings }) {
     let listPath
     try {
       listPath = await invoke('write_temp_list', { contents: listContent })
+      console.log('listPath:', listPath)
     } catch (e) {
       setError(`Ошибка создания списка: ${e}`)
       setState('error')
@@ -109,10 +110,10 @@ export default function MergeTab({ settings }) {
 
     try {
       await invoke('convert_concat', {
-        list_path: listPath,
+        listPath: listPath,
         output: outPath,
         args: ['-vcodec', vcodec, '-acodec', acodec],
-        job_id: jobId,
+        jobId: jobId,
       })
     } catch (e) {
       setState('error')

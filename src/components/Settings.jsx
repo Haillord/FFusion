@@ -136,6 +136,20 @@ export default function Settings({ settings, setSettings }) {
           <div className="row-label">Движок</div>
           <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>FFmpeg + Tauri + React</span>
         </div>
+        <div className="row">
+          <div className="row-label">Разработчик</div>
+          <button 
+            className="btn btn-primary" 
+            style={{ fontSize: 12 }}
+            onClick={() => {
+              import('@tauri-apps/plugin-shell').then(({ open }) => {
+                open('https://www.donationalerts.com/r/haillord1')
+              })
+            }}
+          >
+            ☕ Поддержать разработчика
+          </button>
+        </div>
       </div>
     </div>
   )

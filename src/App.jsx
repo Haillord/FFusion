@@ -11,6 +11,7 @@ import BatchTab from './components/BatchTab'
 import Settings from './components/Settings'
 import TrimTab from './components/TrimTab'
 import MergeTab from './components/MergeTab'
+import FramesTab from './components/FramesTab'
 
 // ─── Global progress store ────────────────────────────────────────────────────
 // Shared across tabs so BatchTab can show progress of any job
@@ -93,7 +94,7 @@ export default function App() {
         {tab === 'settings' && <Settings settings={settings} setSettings={setSettings} />}
 
         {/* Stubs for future tabs */}
-        {tab === 'thumb' && <Stub title="Кадры" desc="Скоро: извлечение кадров из видео" />}
+        {tab === 'thumb' && <FramesTab settings={settings} />}
       </div>
     </div>
   )

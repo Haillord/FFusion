@@ -22,6 +22,7 @@ export default function GifWebpTab({ settings }) {
   const [width, setWidth]       = useState(480)
   const [quality, setQuality]   = useState(85)
   const [loop, setLoop]         = useState(true)
+  const [pingPong, setPingPong] = useState(false)
   const [dither, setDither]     = useState('bayer')
   const [startTime, setStart]   = useState(0)
   const [duration, setDuration] = useState(0)
@@ -33,25 +34,41 @@ export default function GifWebpTab({ settings }) {
     if (duration > 0)  args.push('-t', String(duration))
 
     if (fmt === 'GIF') {
-      args.push('-vf',
-        `fps=${gifFps},scale=${width}:-1:flags=lanczos,split[s0][s1];[s0]palettegen=stats_mode=diff[p];[s1][p]paletteuse=dither=${dither}`)
+      const scaleFilter = `fps=${gifFps},scale=${width}:-1:flags=lanczos`
+      if (pingPong) {
+        args.push('-vf',
+          `${scaleFilter},split[v1][v2];[v2]reverse[rv];[v1][rv]concat=n=2:v=1,split[s0][s1];[s0]palettegen=stats_mode=diff[p];[s1][p]paletteuse=dither=${dither}`)
+      } else {
+        args.push('-vf',
+          `${scaleFilter},split[s0][s1];[s0]palettegen=stats_mode=diff[p];[s1][p]paletteuse=dither=${dither}`)
+      }
       if (loop) args.push('-loop', '0')
       else args.push('-loop', '-1')
     } else if (fmt === 'WebP') {
-      args.push('-vf', `fps=${gifFps},scale=${width}:-1:flags=lanczos`)
+      const scaleFilter = `fps=${gifFps},scale=${width}:-1:flags=lanczos`
+      if (pingPong) {
+        args.push('-vf', `${scaleFilter},split[v1][v2];[v2]reverse[rv];[v1][rv]concat=n=2:v=1`)
+      } else {
+        args.push('-vf', scaleFilter)
+      }
       args.push('-vcodec', 'libwebp')
       args.push('-q:v', String(quality))
       args.push('-preset', 'default')
       args.push('-loop', loop ? '0' : '1')
       if (optimize) args.push('-compression_level', '6')
     } else if (fmt === 'APNG') {
-      args.push('-vf', `fps=${gifFps},scale=${width}:-1:flags=lanczos`)
+      const scaleFilter = `fps=${gifFps},scale=${width}:-1:flags=lanczos`
+      if (pingPong) {
+        args.push('-vf', `${scaleFilter},split[v1][v2];[v2]reverse[rv];[v1][rv]concat=n=2:v=1`)
+      } else {
+        args.push('-vf', scaleFilter)
+      }
       args.push('-vcodec', 'apng')
       args.push('-plays', loop ? '0' : '1')
     }
 
     return args
-  }, [fmt, gifFps, width, quality, loop, dither, startTime, duration, optimize])
+  }, [fmt, gifFps, width, quality, loop, pingPong, dither, startTime, duration, optimize])
 
   const cmd = useMemo(() => {
     if (!file) return 'ffmpeg -i input.mp4 ...'
@@ -95,6 +112,8 @@ export default function GifWebpTab({ settings }) {
             onChange={setQuality} unit="%" />
         )}
         <ToggleRow label="Зациклить анимацию" on={loop} onChange={setLoop} />
+        <ToggleRow label="Ping-pong (вперёд + назад)" hint="Анимация играет вперёд затем в обратную сторону"
+          on={pingPong} onChange={setPingPong} />
       </div>
 
       <div className="card">

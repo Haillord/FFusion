@@ -195,11 +195,16 @@ export function FileDropZone({ file, onPick, onClear, onDropPath, accept }) {
     let unlistenDrop, unlistenEnter, unlistenLeave;
     const setup = async () => {
       unlistenDrop = await listen("tauri://drop", (event) => {
+        console.log('DROP EVENT FULL:', JSON.stringify(event))
         setDragging(false);
-        const paths = event.payload?.paths;
-        if (paths?.[0]) onDropPath(paths[0]);
+        const paths = event.payload?.paths ?? event.payload;
+        if (Array.isArray(paths) && paths[0]) onDropPath(paths[0]);
+        else if (typeof paths === 'string') onDropPath(paths);
       });
-      unlistenEnter = await listen("tauri://drop-hover", () => setDragging(true));
+      unlistenEnter = await listen("tauri://drop-hover", (event) => {
+        console.log('HOVER FULL:', JSON.stringify(event))
+        setDragging(true)
+      })
       unlistenLeave = await listen("tauri://drop-cancelled", () => setDragging(false));
     };
     setup();
