@@ -10,7 +10,7 @@
 
 
 <p align="center">
-  <img src="https://img.shields.io/github/license/Haillord/FFStudio?style=for-the-badge&label=LICENSE&color=1A6BFF&labelColor=0a0a0f" alt="license">
+<img src="https://img.shields.io/github/license/Haillord/FFStudio?style=for-the-badge&label=LICENSE&color=1A6BFF&labelColor=0a0a0f&cacheSeconds=1" alt="license">
   <img src="https://img.shields.io/github/stars/Haillord/FFStudio?style=for-the-badge&label=STARS&color=1A6BFF&labelColor=0a0a0f" alt="stars">
   <img src="https://img.shields.io/badge/STATUS-ACTIVE-1A6BFF?style=for-the-badge&labelColor=0a0a0f" alt="status">
 </p>
