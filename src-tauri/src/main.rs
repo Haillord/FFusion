@@ -238,6 +238,72 @@ async fn write_temp_list(contents: String) -> Result<String, String> {
     Ok(tmp.to_string_lossy().to_string())
 }
 
+fn base64_encode(data: &[u8]) -> String {
+    const CHARS: &[u8] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    let mut encoded = String::with_capacity((data.len() + 2) / 3 * 4);
+
+    for chunk in data.chunks(3) {
+        let b0 = chunk[0] as usize;
+        let b1 = if chunk.len() > 1 { chunk[1] as usize } else { 0 };
+        let b2 = if chunk.len() > 2 { chunk[2] as usize } else { 0 };
+
+        encoded.push(CHARS[b0 >> 2] as char);
+        encoded.push(CHARS[((b0 & 3) << 4) | (b1 >> 4)] as char);
+        
+        if chunk.len() > 1 {
+            encoded.push(CHARS[((b1 & 0x0f) << 2) | (b2 >> 6)] as char);
+        } else {
+            encoded.push('=');
+        }
+        
+        if chunk.len() > 2 {
+            encoded.push(CHARS[b2 & 0x3f] as char);
+        } else {
+            encoded.push('=');
+        }
+    }
+
+    encoded
+}
+
+#[tauri::command]
+async fn read_file_base64(path: String) -> Result<String, String> {
+    let bytes = std::fs::read(&path).map_err(|e| e.to_string())?;
+    Ok(base64_encode(&bytes))
+}
+
+#[tauri::command]
+async fn preview_frame(app: tauri::AppHandle, input: String, time: f64, vf_args: String) -> Result<String, String> {
+    let ffmpeg = resolve_ffmpeg(&app);
+    let tmp = std::env::temp_dir().join("ffstudio_preview.jpg");
+    
+    let mut cmd = Command::new(&ffmpeg);
+    cmd.arg("-y")
+        .arg("-ss").arg(time.to_string())
+        .arg("-i").arg(&input)
+        .arg("-vframes").arg("1");
+    
+    if !vf_args.is_empty() {
+        cmd.arg("-vf").arg(&vf_args);
+    }
+    
+    cmd.arg("-q:v").arg("2")
+        .arg(tmp.to_string_lossy().as_ref())
+        .stdout(Stdio::null())
+        .stderr(Stdio::null());
+    
+    let status = cmd.spawn()
+        .map_err(|e| e.to_string())?
+        .wait()
+        .map_err(|e| e.to_string())?;
+    
+    if status.success() {
+        Ok(tmp.to_string_lossy().to_string())
+    } else {
+        Err("Не удалось извлечь кадр".to_string())
+    }
+}
+
 async fn run_ffmpeg(
     mut cmd: Command,
     job_id: String,
@@ -324,6 +390,8 @@ fn main() {
             file_exists,
             open_in_explorer,
             write_temp_list,
+            preview_frame,
+            read_file_base64,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

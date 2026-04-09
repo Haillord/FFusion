@@ -1,4 +1,6 @@
 import { useState, useMemo } from 'react'
+import { invoke } from '@tauri-apps/api/core'
+import { convertFileSrc } from '@tauri-apps/api/core'
 import {
   useFile, useConvert, saveOutput,
   Toggle, Chip, SliderRow, SelectRow, ToggleRow,
@@ -70,6 +72,11 @@ export default function VideoTab({ settings }) {
   const [rotate, setRotate]         = useState(0)
   const [hflip, setHflip]           = useState(false)
   const [vflip, setVflip]           = useState(false)
+  const [vertical, setVertical]     = useState(false)
+  const [cropOffset, setCropOffset] = useState(0)
+  const [previewSrc, setPreviewSrc] = useState(null)
+  const [previewLoading, setPreviewLoading] = useState(false)
+  const [previewTime, setPreviewTime] = useState(0)
 
   const toggleSection = (section) => {
     setOpenSections(prev => {
@@ -117,6 +124,10 @@ export default function VideoTab({ settings }) {
     if (rotate !== 0) vf.push(`transpose=${rotate}`)
     if (hflip) vf.push('hflip')
     if (vflip) vf.push('vflip')
+    if (vertical) {
+      const offset = `(iw-ih*9/16)/2+iw*${cropOffset}/100`
+      vf.push(`crop=ih*9/16:ih:${offset}:0`)
+    }
     if (vf.length > 0) args.push('-vf', vf.join(','))
     args.push('-r', String(fpsVal))
     if (acodec === 'none') {
@@ -132,13 +143,33 @@ export default function VideoTab({ settings }) {
     if (fmt === 'MP4' && faststart) args.push('-movflags', '+faststart')
     return args
   }, [vcodec, crf, preset, res, keepAr, fpsVal, acodec, abitrate, normalize,
-      subsMode, stripMeta, fmt, faststart, playbackSpeed, rotate, hflip, vflip])
+      subsMode, stripMeta, fmt, faststart, playbackSpeed, rotate, hflip, vflip, vertical, cropOffset])
 
   const cmd = useMemo(() => {
     if (!file) return 'ffmpeg -i input.mp4 ...'
     const ext = fmt.toLowerCase()
     return `ffmpeg -y -i "${file.name}" ${ffArgs.join(' ')} "output.${ext}"`
   }, [file, ffArgs, fmt])
+
+  const handlePreview = async () => {
+    if (!file) return
+    setPreviewLoading(true)
+    try {
+      const vfString = vertical 
+        ? `crop=ih*9/16:ih:(iw-ih*9/16)/2+iw*${cropOffset}/100:0`
+        : ''
+      const tmpPath = await invoke('preview_frame', {
+        input: file.path,
+        time: previewTime,
+        vfArgs: vfString,
+      })
+      const base64 = await invoke('read_file_base64', { path: tmpPath })
+      setPreviewSrc(`data:image/jpeg;base64,${base64}`)
+    } catch (e) {
+      console.error(e)
+    }
+    setPreviewLoading(false)
+  }
 
   const handleConvert = async () => {
     if (!file) return
@@ -157,6 +188,67 @@ export default function VideoTab({ settings }) {
         onDropPath={loadFileInfo}
         accept="MP4, MKV, AVI, MOV, WebM и другие"
       />
+
+      {file && (
+        <div className="card">
+          <div className="card-header">
+            <span className="card-title">Предпросмотр кадра</span>
+            <button 
+              className="btn btn-secondary" 
+              style={{ fontSize: 12 }}
+              onClick={handlePreview}
+              disabled={previewLoading}
+            >
+              {previewLoading ? '⏳ Загрузка...' : '👁 Показать'}
+            </button>
+          </div>
+          <div className="row">
+            <div>
+              <div className="row-label">Время (сек)</div>
+              {file?.info?.duration > 0 && (
+                <div className="row-hint">до {file.info.duration.toFixed(1)} сек</div>
+              )}
+            </div>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+              <input
+                type="range"
+                min={0}
+                max={file?.info?.duration || 100}
+                step={0.5}
+                value={previewTime}
+                onChange={e => setPreviewTime(Number(e.target.value))}
+                style={{ width: 150 }}
+              />
+              <input
+                type="number"
+                className="ios-input"
+                min={0}
+                step={0.5}
+                value={previewTime}
+                onChange={e => setPreviewTime(Number(e.target.value))}
+                style={{ width: 60 }}
+              />
+            </div>
+          </div>
+          {previewSrc && (
+            <div style={{ padding: '0 16px 16px' }}>
+        <img 
+          src={previewSrc} 
+          alt="preview" 
+          style={{ 
+            width: vertical ? 'auto' : '100%',
+            height: vertical ? '400px' : 'auto',
+            maxWidth: '100%',
+            borderRadius: 8,
+            border: '1px solid var(--border)',
+            display: 'block',
+            margin: '0 auto'
+          }} 
+        />
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="card">
         <div className="card-header"><span className="card-title">Формат вывода</span></div>
@@ -253,6 +345,22 @@ export default function VideoTab({ settings }) {
             ]} />
           <ToggleRow label="Отразить по горизонтали" on={hflip} onChange={setHflip} />
           <ToggleRow label="Отразить по вертикали" on={vflip} onChange={setVflip} />
+          
+          <ToggleRow 
+            label="Вертикальное видео (9:16)" 
+            hint="Кадрирует для TikTok/Reels/Shorts"
+            on={vertical} 
+            onChange={setVertical} 
+          />
+          {vertical && (
+            <SliderRow 
+              label="Смещение по горизонтали"
+              hint="0 = центр, минус = левее, плюс = правее"
+              min={-50} max={50} step={1}
+              value={cropOffset} onChange={setCropOffset}
+              unit="%"
+            />
+          )}
         </div>
       </div>
 

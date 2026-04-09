@@ -30,38 +30,51 @@ export default function GifWebpTab({ settings }) {
 
   const ffArgs = useMemo(() => {
     const args = []
-    if (startTime > 0) args.push('-ss', String(startTime))
-    if (duration > 0)  args.push('-t', String(duration))
+
+    const getTrimFilter = () => {
+      if (pingPong && (startTime > 0 || duration > 0)) {
+        const end = duration > 0 ? startTime + duration : ''
+        return `trim=${startTime}:${end},setpts=PTS-STARTPTS,`
+      }
+      if (startTime > 0) args.push('-ss', String(startTime))
+      if (duration > 0) args.push('-t', String(duration))
+      return ''
+    }
 
     if (fmt === 'GIF') {
+      const trimFilter = getTrimFilter()
       const scaleFilter = `fps=${gifFps},scale=${width}:-1:flags=lanczos`
       if (pingPong) {
         args.push('-vf',
-          `${scaleFilter},split[v1][v2];[v2]reverse[rv];[v1][rv]concat=n=2:v=1,split[s0][s1];[s0]palettegen=stats_mode=diff[p];[s1][p]paletteuse=dither=${dither}`)
+          `${trimFilter}${scaleFilter},split[v1][v2];[v2]reverse[rv];[v1][rv]concat=n=2:v=1,split[s0][s1];[s0]palettegen=stats_mode=diff[p];[s1][p]paletteuse=dither=${dither}`)
       } else {
         args.push('-vf',
-          `${scaleFilter},split[s0][s1];[s0]palettegen=stats_mode=diff[p];[s1][p]paletteuse=dither=${dither}`)
+          `${trimFilter}${scaleFilter},split[s0][s1];[s0]palettegen=stats_mode=diff[p];[s1][p]paletteuse=dither=${dither}`)
       }
       if (loop) args.push('-loop', '0')
       else args.push('-loop', '-1')
+
     } else if (fmt === 'WebP') {
+      const trimFilter = getTrimFilter()
       const scaleFilter = `fps=${gifFps},scale=${width}:-1:flags=lanczos`
       if (pingPong) {
-        args.push('-vf', `${scaleFilter},split[v1][v2];[v2]reverse[rv];[v1][rv]concat=n=2:v=1`)
+        args.push('-vf', `${trimFilter}${scaleFilter},split[v1][v2];[v2]reverse[rv];[v1][rv]concat=n=2:v=1`)
       } else {
-        args.push('-vf', scaleFilter)
+        args.push('-vf', `${trimFilter}${scaleFilter}`)
       }
       args.push('-vcodec', 'libwebp')
       args.push('-q:v', String(quality))
       args.push('-preset', 'default')
       args.push('-loop', loop ? '0' : '1')
       if (optimize) args.push('-compression_level', '6')
+
     } else if (fmt === 'APNG') {
+      const trimFilter = getTrimFilter()
       const scaleFilter = `fps=${gifFps},scale=${width}:-1:flags=lanczos`
       if (pingPong) {
-        args.push('-vf', `${scaleFilter},split[v1][v2];[v2]reverse[rv];[v1][rv]concat=n=2:v=1`)
+        args.push('-vf', `${trimFilter}${scaleFilter},split[v1][v2];[v2]reverse[rv];[v1][rv]concat=n=2:v=1`)
       } else {
-        args.push('-vf', scaleFilter)
+        args.push('-vf', `${trimFilter}${scaleFilter}`)
       }
       args.push('-vcodec', 'apng')
       args.push('-plays', loop ? '0' : '1')
