@@ -7,6 +7,7 @@
 <p align="center">
   <b>AI + FFmpeg desktop studio</b><br/>
   React + Tauri (Rust) приложение для видео, аудио, субтитров и локальных AI-задач.
+  !Для полноценной работы рекомендуется запускать на GPU от RTX 3060 12gb! 
 </p>
 
 <p align="center">
