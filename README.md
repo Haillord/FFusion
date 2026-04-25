@@ -62,36 +62,6 @@
 
 ---
 
-## Скриншоты
-
-<details>
-  <summary><b>📸 Открыть галерею</b></summary>
-  <br/>
-
-  <details>
-    <summary>Главный экран</summary>
-    <br/>
-    <!-- Замените путь на реальный скриншот -->
-    ![Главный экран](./docs/screenshots/main.png)
-  </details>
-
-  <details>
-    <summary>Видео вкладка</summary>
-    <br/>
-    <!-- Замените путь на реальный скриншот -->
-    ![Видео вкладка](./docs/screenshots/video-tab.png)
-  </details>
-
-  <details>
-    <summary>AI / Voice вкладка</summary>
-    <br/>
-    <!-- Замените путь на реальный скриншот -->
-    ![AI Voice вкладка](./docs/screenshots/voice-tab.png)
-  </details>
-</details>
-
-
----
 
 ## Требования
 
