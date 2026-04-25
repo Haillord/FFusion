@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="icon.webp" alt="FFStudio" width="1000" />
+  <img src="icon.webp" alt="FFusion" width="1000" />
 </p>
 
-<h1 align="center">FFStudio</h1>
+<h1 align="center">FFusion</h1>
 
 <p align="center">
   <b>AI + FFmpeg desktop studio</b><br/>
@@ -17,13 +17,13 @@
 
 <p align="center">
   <a href="https://github.com/Haillord/FFStudio/releases/tag/FF">
-    <img src="https://img.shields.io/badge/⬇️_Скачать_установщик-007AFF?style=for-the-badge&logo=github&logoColor=white" alt="Скачать FFStudio" />
+    <img src="https://img.shields.io/badge/_Скачать_установщик-007AFF?style=for-the-badge&logo=github&logoColor=white" alt="Скачать FFStudio" />
   </a>
 </p>
 
 ---
 
-## Почему FFStudio
+## Почему FFusion
 
 - Единый интерфейс для FFmpeg-инструментов и AI-функций.
 - Нативный desktop UX без терминала и сложной ручной настройки.
@@ -90,7 +90,6 @@
   </details>
 </details>
 
-> Подсказка: добавь файлы в `docs/screenshots/` с теми же именами, и секция сразу станет полноценной галереей.
 
 ---
 
